@@ -18,4 +18,8 @@ npm-debug.log*
 
 # OS files
 .DS_Store
-Thumbs.db
+Thumbs.db 
+
+.env.example
+server/.env.example
+client/.env.example
