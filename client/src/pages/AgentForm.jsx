@@ -443,9 +443,6 @@ export default function AgentForm() {
         {/* CONTENT */}
         <div className="af-content">
 
-          {/* Messages */}
-          {success && <div className="af-success">✅ Report submitted successfully!</div>}
-          {error && <div className="af-error">⚠️ {error}</div>}
 
           <form onSubmit={handleSubmit}>
           <div className="af-two-panel">
@@ -479,9 +476,9 @@ export default function AgentForm() {
                 <div className="af-company-grid">
                   {COMPANIES.map(c => (
                     <div
-                      key={c.id}
-                      className={`af-company-item ${form.company === c.full ? 'selected' : ''}`}
-                      onClick={() => setForm(prev => ({ ...prev, company: c.full }))}
+                    key={c.id}
+                    className={`af-company-item ${form.company === c.full ? 'selected' : ''}`}
+                    onClick={() => setForm(prev => ({ ...prev, company: c.full }))}
                     >
                       <i className="ti ti-building af-co-icon" aria-hidden="true"></i>
                       <div className="af-co-name">{c.name}</div>
@@ -556,7 +553,7 @@ export default function AgentForm() {
                       value={form[f.key]}
                       onChange={handleChange}
                       style={{ color: f.color }}
-                    />
+                      />
                   </div>
                 ))}
               </div>
@@ -575,6 +572,9 @@ export default function AgentForm() {
                 </div>
               </div>
             </div>
+                  {/* Messages */}
+                  {success && <div className="af-success">✅ Report submitted successfully!</div>}
+                  {error && <div className="af-error">⚠️ {error}</div>}
 
             {/* BUTTONS */}
             <div className="af-btn-row">
