@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import API from '../utils/api'
 
+
 const COMPANIES = [
   'All Companies',
   'Growth Overseas International Edutech',
@@ -9,8 +10,10 @@ const COMPANIES = [
   'Ocean Global Overseas'
 ]
 
+
 const today = new Date().toISOString().split('T')[0]
 const todayDisplay = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'short', year: 'numeric' })
+
 
 const styles = `
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -20,6 +23,7 @@ const styles = `
     background: #0b1120;
     font-family: 'DM Sans', sans-serif;
     color: #f1f5f9;
+    overflow-x: hidden;
   }
 
   /* NAVBAR */
@@ -57,6 +61,43 @@ const styles = `
     display: flex; align-items: center; gap: 6px;
   }
   .ad-logout:hover { background: rgba(239,68,68,0.15); }
+
+  /* Mobile Menu */
+  .ad-mobile-menu-btn {
+    display: none;
+    font-size: 20px; color: #f1f5f9;
+    background: none; border: none; cursor: pointer;
+    padding: 4px;
+  }
+  .ad-mobile-menu {
+    display: none;
+    position: absolute;
+    top: 56px; left: 0; right: 0;
+    background: #111827;
+    border-bottom: 1px solid #1e2d45;
+    padding: 12px 16px;
+    flex-direction: column; gap: 8px;
+    z-index: 99;
+  }
+  .ad-mobile-menu.active { display: flex; }
+  .ad-mobile-menu button {
+    width: 100%; text-align: left;
+    padding: 10px 12px; border-radius: 8px;
+    border: none; background: none;
+    color: #64748b; font-family: 'DM Sans', sans-serif;
+    font-size: 13px; cursor: pointer;
+  }
+  .ad-mobile-menu button:hover { background: #1a2235; color: #f1f5f9; }
+  .ad-mobile-menu button.active { background: rgba(59,130,246,0.15); color: #3b82f6; }
+  .ad-mobile-logout {
+    width: 100%; text-align: left;
+    padding: 10px 12px; border-radius: 8px;
+    border: 1px solid rgba(239,68,68,0.25);
+    background: rgba(239,68,68,0.08);
+    color: #ef4444; font-family: 'DM Sans', sans-serif;
+    font-size: 13px; cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+  }
 
   /* PAGE HEADER */
   .ad-page-header {
@@ -123,6 +164,7 @@ const styles = `
     border-radius: 9px; color: #f1f5f9;
     font-family: 'DM Sans', sans-serif; font-size: 13px;
     outline: none; transition: all 0.2s; height: 36px;
+    width: 100%;
   }
   .ad-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
   .ad-input option { background: #1a2235; }
@@ -177,38 +219,124 @@ const styles = `
   .ad-empty { text-align: center; padding: 50px 20px; color: #64748b; }
   .ad-loading { text-align: center; padding: 40px; color: #64748b; }
 
-  /* RESPONSIVE */
   /* ASSIGN LEADS */
   .ad-assign-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .ad-assign-table { width: 100%; border-collapse: collapse; margin-top: 14px; }
+  .ad-assign-date-leads { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .ad-assign-table { width: 100%; border-collapse: collapse; margin-top: 14px; table-layout: fixed; }
   .ad-assign-table th {
-    padding: 9px 12px; text-align: left; font-size: 10px; font-weight: 700;
+    padding: 9px 8px; text-align: left; font-size: 10px; font-weight: 700;
     text-transform: uppercase; letter-spacing: 0.7px; color: #64748b;
     border-bottom: 1px solid #1e2d45; background: #1a2235; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
   }
-  .ad-assign-table td { padding: 10px 12px; border-bottom: 1px solid #1e2d45; font-size: 13px; }
+  .ad-assign-table td { padding: 10px 8px; border-bottom: 1px solid #1e2d45; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .ad-assign-table tbody tr:last-child td { border-bottom: none; }
   .ad-success { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: #10b981; padding: 10px 14px; border-radius: 10px; font-size: 13px; font-weight: 600; margin-bottom: 14px; }
   .ad-err { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 10px 14px; border-radius: 10px; font-size: 13px; font-weight: 600; margin-bottom: 14px; }
 
-  @media (max-width: 1200px) {
+  /* LABEL */
+  .ad-label { font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 4px; display: block; }
+
+  /* RESPONSIVE BREAKPOINTS */
+  
+  /* Tablet (768px - 1024px) */
+  @media (max-width: 1024px) {
     .ad-stats { grid-template-columns: repeat(3, 1fr); }
     .ad-charts-row { grid-template-columns: 1fr; }
-    .ad-company-grid { grid-template-columns: 1fr 1fr 1fr; }
+    .ad-company-grid { grid-template-columns: 1fr 1fr; }
+    .ad-assign-grid { grid-template-columns: 1fr; }
   }
-  @media (max-width: 900px) {
+
+  /* Mobile (481px - 767px) */
+  @media (max-width: 768px) {
     .ad-nav { padding: 0 16px; }
+    .ad-mobile-menu-btn { display: block; }
+    .ad-nav-btn { display: none; }
+    .ad-logout { display: none; }
+    
     .ad-page-header { padding: 14px 16px; }
+    .ad-page-title { font-size: 1.2rem; }
     .ad-content { padding: 16px 14px 40px; }
+    
     .ad-stats { grid-template-columns: repeat(2, 1fr); }
     .ad-company-grid { grid-template-columns: 1fr; }
+    
     .ad-filter-row { flex-direction: column; align-items: stretch; }
+    .ad-filter-item { width: 100%; }
+    .ad-input { width: 100%; }
+    .ad-date-row { width: 100%; }
+    .ad-date-btn { flex: 1; }
+    .ad-filter-actions { width: 100%; flex-direction: row; }
+    .ad-reset, .ad-export { flex: 1; }
+    
+    .ad-assign-date-leads { grid-template-columns: 1fr; }
+    
+    .ad-table { min-width: 700px; }
   }
-  @media (max-width: 600px) {
+
+  /* Small Mobile (320px - 480px) */
+  @media (max-width: 480px) {
+    .ad-nav { padding: 0 12px; height: 52px; }
+    .ad-nav-icon { width: 26px; height: 26px; font-size: 13px; }
+    .ad-nav-title { font-size: 11px; }
+    .ad-nav-sub { font-size: 9px; }
+    .ad-mobile-menu-btn { font-size: 18px; }
+    
+    .ad-page-header { padding: 12px 14px; }
+    .ad-page-title { font-size: 1rem; }
+    .ad-page-label { font-size: 9px; }
+    .ad-page-date { font-size: 10px; }
+    
+    .ad-content { padding: 12px 12px 30px; gap: 12px; }
+    
+    .ad-stats { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .ad-stat { padding: 12px; }
+    .ad-stat-val { font-size: 20px; }
+    .ad-stat-label { font-size: 10px; }
+    .ad-stat-icon { font-size: 14px; }
+    
+    .ad-card { padding: 14px 16px; }
+    .ad-card-title { font-size: 1rem; }
+    .ad-card-sub { font-size: 10px; }
+    
+    .ad-company-card { padding: 12px; }
+    .ad-company-name { font-size: 11px; }
+    .ad-company-sub { font-size: 9px; }
+    .ad-company-row-label { font-size: 10px; }
+    .ad-company-row-val { font-size: 12px; }
+    
+    .ad-input { height: 34px; padding: 7px 10px; font-size: 12px; }
+    .ad-date-btn { height: 34px; padding: 7px 10px; font-size: 11px; }
+    .ad-reset, .ad-export { height: 34px; font-size: 11px; padding: 0 12px; }
+    
+    .ad-table { min-width: 600px; }
+    .ad-table th { font-size: 9px; padding: 8px 10px; }
+    .ad-table td { font-size: 11px; padding: 9px 10px; }
+    .ad-pill { font-size: 10px; padding: 2px 8px; }
+    .ad-del { font-size: 10px; padding: 4px 10px; }
+    
+    .ad-assign-table th { font-size: 9px; padding: 8px 6px; }
+    .ad-assign-table td { font-size: 11px; padding: 9px 6px; }
+    
+    .ad-success, .ad-err { font-size: 12px; padding: 8px 12px; }
+    
+    .ad-loading, .ad-empty { padding: 30px 15px; font-size: 13px; }
+  }
+
+  /* Large Desktop (1441px+) */
+  @media (min-width: 1441px) {
+    .ad-content { max-width: 1600px; padding: 28px 32px 70px; }
+    .ad-nav { padding: 0 36px; }
+    .ad-page-header { padding: 22px 36px; }
+  }
+
+  /* Landscape Mobile */
+  @media (max-width: 390px) and (orientation: landscape) {
+    .ad-content { padding: 10px 10px 20px; }
     .ad-stats { grid-template-columns: 1fr 1fr; }
-    .ad-nav-btn { display: none; }
   }
 `
+
 
 export default function AdminDashboard() {
   const [reports, setReports] = useState([])
@@ -221,11 +349,13 @@ export default function AdminDashboard() {
   const [assignLoading, setAssignLoading] = useState(false)
   const [assignSuccess, setAssignSuccess] = useState(false)
   const [assignError, setAssignError] = useState('')
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const navigate = useNavigate()
   const barRef = useRef(null)
   const pieRef = useRef(null)
   const barChart = useRef(null)
   const pieChart = useRef(null)
+
 
   const fetchReports = useCallback(async () => {
     setLoading(true)
@@ -251,12 +381,15 @@ export default function AdminDashboard() {
     }
   }, [filters, dateMode, navigate])
 
+
   useEffect(() => { fetchReports() }, [fetchReports])
+
 
   // Build charts from real data
   useEffect(() => {
     if (!window.Chart) return
     const Chart = window.Chart
+
 
     // PIE chart — response breakdown
     if (pieRef.current) {
@@ -282,6 +415,7 @@ export default function AdminDashboard() {
         }
       })
     }
+
 
     // BAR chart — calls per agent (top 6)
     if (barRef.current) {
@@ -314,6 +448,7 @@ export default function AdminDashboard() {
     }
   }, [reports])
 
+
   // Load Chart.js
   useEffect(() => {
     if (window.Chart) return
@@ -323,16 +458,19 @@ export default function AdminDashboard() {
     document.head.appendChild(script)
   }, [])
 
+
   const handleDelete = async (id) => {
     if (!confirm('Delete this report?')) return
     await API.delete(`/api/reports/${id}`)
     fetchReports()
   }
 
+
   const handleLogout = () => {
     localStorage.removeItem('adminToken')
     navigate('/admin')
   }
+
 
   // ✅ Assigned leads fetch karo
   const fetchAssignedLeads = useCallback(async () => {
@@ -344,7 +482,9 @@ export default function AdminDashboard() {
     } catch {}
   }, [])
 
+
   useEffect(() => { fetchAssignedLeads() }, [fetchAssignedLeads])
+
 
   // ✅ Admin leads assign kare
   const handleAssignSubmit = async (e) => {
@@ -370,11 +510,13 @@ export default function AdminDashboard() {
     }
   }
 
+
   const handleDeleteAssigned = async (id) => {
     if (!confirm('Delete this assigned lead?')) return
     await API.delete(`/api/assigned-leads/${id}`)
     fetchAssignedLeads()
   }
+
 
   const exportCSV = () => {
     if (!reports.length) return alert('No data to export!')
@@ -386,6 +528,7 @@ export default function AdminDashboard() {
     const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `revert_${today}.csv` })
     a.click()
   }
+
 
   // Company wise summary
   const companySummary = COMPANIES.slice(1).map(name => {
@@ -400,18 +543,23 @@ export default function AdminDashboard() {
     }
   })
 
+
   const coColors = ['#3b82f6', '#10b981', '#8b5cf6']
+
 
   const pill = (val, color, bg) => (
     <span className="ad-pill" style={{ color, background: bg }}>{val ?? 0}</span>
   )
+
 
   return (
     <>
       <style>{styles}</style>
       <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet" />
 
+
       <div className="ad-root">
+
 
         {/* NAVBAR */}
         <nav className="ad-nav">
@@ -431,8 +579,22 @@ export default function AdminDashboard() {
               <i className="ti ti-logout" aria-hidden="true"></i>
               Logout
             </button>
+            <button className="ad-mobile-menu-btn" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+              <i className={mobileMenuOpen ? "ti ti-close" : "ti ti-menu"} aria-hidden="true"></i>
+            </button>
           </div>
         </nav>
+
+        {/* MOBILE MENU */}
+        <div className={`ad-mobile-menu ${mobileMenuOpen ? 'active' : ''}`}>
+          <button className="active" onClick={() => { navigate('/admin/dashboard'); setMobileMenuOpen(false); }}>Dashboard</button>
+          <button onClick={() => { navigate('/'); setMobileMenuOpen(false); }}>Agent Form</button>
+          <button className="ad-mobile-logout" onClick={() => { handleLogout(); setMobileMenuOpen(false); }}>
+            <i className="ti ti-logout" aria-hidden="true"></i>
+            Logout
+          </button>
+        </div>
+
 
         {/* PAGE HEADER */}
         <div className="ad-page-header">
@@ -443,7 +605,9 @@ export default function AdminDashboard() {
           <div className="ad-page-date">{todayDisplay}</div>
         </div>
 
+
         <div className="ad-content">
+
 
           {/* STAT CARDS */}
           <div className="ad-stats">
@@ -464,8 +628,10 @@ export default function AdminDashboard() {
             ))}
           </div>
 
+
           {/* CHARTS ROW */}
           <div className="ad-charts-row">
+
 
             {/* BAR CHART */}
             <div className="ad-card">
@@ -475,6 +641,7 @@ export default function AdminDashboard() {
                 <canvas ref={barRef} role="img" aria-label="Bar chart showing top agents by total calls">Agent call counts</canvas>
               </div>
             </div>
+
 
             {/* PIE CHART */}
             <div className="ad-card">
@@ -498,6 +665,7 @@ export default function AdminDashboard() {
               </div>
             </div>
           </div>
+
 
           {/* COMPANY COMPARISON */}
           <div className="ad-card">
@@ -529,6 +697,7 @@ export default function AdminDashboard() {
             </div>
           </div>
 
+
           {/* ASSIGN LEADS SECTION */}
           <div className="ad-card">
             <div className="ad-card-title" style={{ marginBottom: 16 }}>
@@ -536,6 +705,7 @@ export default function AdminDashboard() {
               Assign Leads to Agent
             </div>
             <div className="ad-assign-grid">
+
 
               {/* LEFT — ASSIGN FORM */}
               <div>
@@ -556,7 +726,7 @@ export default function AdminDashboard() {
                       ))}
                     </select>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <div className="ad-assign-date-leads">
                     <div>
                       <span className="ad-label">Date *</span>
                       <input className="ad-input" style={{ width: '100%' }} type="date" value={assignForm.assignedDate} onChange={e => setAssignForm(p => ({ ...p, assignedDate: e.target.value }))} required />
@@ -576,6 +746,7 @@ export default function AdminDashboard() {
                   </button>
                 </form>
               </div>
+
 
               {/* RIGHT — TODAY'S ASSIGNED LIST */}
               <div>
@@ -619,12 +790,14 @@ export default function AdminDashboard() {
             </div>
           </div>
 
+
           {/* FILTERS + TABLE */}
           <div className="ad-card">
             <div className="ad-card-title" style={{ marginBottom: 14 }}>
               All Reports
               <span className="ad-count">{reports.length} entries</span>
             </div>
+
 
             {/* FILTERS */}
             <div className="ad-filter-row">
@@ -635,10 +808,12 @@ export default function AdminDashboard() {
                 </select>
               </div>
 
+
               <div className="ad-filter-item">
                 <span className="ad-filter-label">Agent Name</span>
                 <input className="ad-input" style={{ minWidth: 150 }} type="text" placeholder="Search agent..." value={filters.agentName} onChange={e => setFilters(p => ({ ...p, agentName: e.target.value }))} />
               </div>
+
 
               <div className="ad-filter-item">
                 <span className="ad-filter-label">Date Mode</span>
@@ -649,12 +824,14 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
+
               {dateMode === 'single' && (
                 <div className="ad-filter-item">
                   <span className="ad-filter-label">Date</span>
                   <input className="ad-input" type="date" value={filters.date} onChange={e => setFilters(p => ({ ...p, date: e.target.value }))} />
                 </div>
               )}
+
 
               {dateMode === 'range' && (
                 <>
@@ -669,6 +846,7 @@ export default function AdminDashboard() {
                 </>
               )}
 
+
               <div className="ad-filter-actions">
                 <button className="ad-reset" onClick={() => { setFilters({ company: '', agentName: '', date: today, startDate: '', endDate: '' }); setDateMode('single') }}>
                   Reset
@@ -679,6 +857,7 @@ export default function AdminDashboard() {
                 </button>
               </div>
             </div>
+
 
             {/* TABLE */}
             {loading ? (
@@ -723,6 +902,7 @@ export default function AdminDashboard() {
               </div>
             )}
           </div>
+
 
         </div>
       </div>
