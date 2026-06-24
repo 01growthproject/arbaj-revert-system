@@ -8,7 +8,6 @@ const COMPANIES = [
   { id: 'ocean', name: 'Ocean Global', sub: 'Overseas', full: 'Ocean Global Overseas' },
 ]
 
-// URL param se company map karo
 const COMPANY_MAP = {
   'growth': 'Growth Overseas International Edutech',
   'famous': 'Famous Visa Consultant',
@@ -310,48 +309,53 @@ const styles = `
 
 export default function AgentForm() {
   const [searchParams] = useSearchParams()
-  
-  // URL se company param read karo — ?company=growth / ?company=famous / ?company=ocean
+
+  // ✅ FIX: URL param mile tो sessionStorage mein save karo
+  // Nahi mila toh sessionStorage se read karo (admin se wapas aane pe bhi kaam karega)
   const companyParam = searchParams.get('company')?.toLowerCase()
-  const lockedCompany = companyParam ? COMPANY_MAP[companyParam] : null
+
+  useEffect(() => {
+    if (companyParam && COMPANY_MAP[companyParam]) {
+      // Naya param aaya — save karo
+      sessionStorage.setItem('lockedCompanyParam', companyParam)
+    }
+  }, [companyParam])
+
+  // URL param pehle check karo, phir sessionStorage
+  const activeParam = companyParam || sessionStorage.getItem('lockedCompanyParam') || null
+  const lockedCompany = activeParam ? COMPANY_MAP[activeParam] : null
 
   const [form, setForm] = useState({
     ...defaultForm,
-    company: lockedCompany || ''  // Locked company auto-set
+    company: lockedCompany || ''
   })
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
-  const [assignedLeads, setAssignedLeads] = useState(null) // Admin ne kitni leads di
+  const [assignedLeads, setAssignedLeads] = useState(null)
   const [leadsLoading, setLeadsLoading] = useState(false)
 
-  // ✅ Jab agent naam + company + date fill kare — assigned leads auto fetch
   const fetchAssignedLeads = async (name, company, date) => {
     if (!name.trim() || !company || !date) return
     setLeadsLoading(true)
     try {
-      console.log('Fetching leads for:', name, company, date)
       const res = await API.get('/api/assigned-leads', {
         params: { agentName: name.trim(), company, assignedDate: date }
       })
-      console.log('Leads response:', res.data)
       setAssignedLeads(res.data)
     } catch (err) {
-      console.error('Leads fetch error:', err)
       setAssignedLeads({ found: false })
     } finally {
       setLeadsLoading(false)
     }
   }
 
-  // ✅ Simple handleChange — sirf state update karo
   const handleChange = (e) => {
     const { name, value } = e.target
     setForm(prev => ({ ...prev, [name]: value }))
   }
 
-  // ✅ Jab bhi naam, company ya date change ho — auto fetch karo
   useEffect(() => {
     const name = form.agentName.trim()
     const company = form.company
@@ -443,7 +447,6 @@ export default function AgentForm() {
         {/* CONTENT */}
         <div className="af-content">
 
-
           <form onSubmit={handleSubmit}>
           <div className="af-two-panel">
 
@@ -463,7 +466,6 @@ export default function AgentForm() {
               </div>
 
               {lockedCompany ? (
-                // Locked — sirf ek company dikh rahi hai
                 <div style={{ background: 'rgba(59,130,246,0.08)', border: '2px solid rgba(59,130,246,0.3)', borderRadius: 12, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
                   <i className="ti ti-building" style={{ fontSize: 22, color: '#3b82f6', flexShrink: 0 }} aria-hidden="true"></i>
                   <div>
@@ -472,7 +474,6 @@ export default function AgentForm() {
                   </div>
                 </div>
               ) : (
-                // No lock — teeno companies dikh rahi hain (admin/testing ke liye)
                 <div className="af-company-grid">
                   {COMPANIES.map(c => (
                     <div
@@ -493,7 +494,7 @@ export default function AgentForm() {
             <div className="af-card">
               <div className="af-two-col">
                 <div>
-                  <div className="af-field-label">Agent Name *</div>
+                  <div className="af-field-label">YOUR Name *</div>
                   <input className="af-input" type="text" name="agentName" value={form.agentName} onChange={handleChange} placeholder="Enter your name" required />
                 </div>
                 <div>
@@ -552,6 +553,8 @@ export default function AgentForm() {
                       type="number" name={f.key} min="0"
                       value={form[f.key]}
                       onChange={handleChange}
+                      onFocus={e => { if (e.target.value === '0') setForm(prev => ({ ...prev, [f.key]: '' })) }}
+                      onBlur={e => { if (e.target.value === '') setForm(prev => ({ ...prev, [f.key]: 0 })) }}
                       style={{ color: f.color }}
                       />
                   </div>
@@ -566,15 +569,12 @@ export default function AgentForm() {
                   <div className="af-field-label">Other</div>
                   <textarea className="af-textarea" name="other" value={form.other} onChange={handleChange} placeholder="Write other details here..." rows={3} />
                 </div>
-                <div>
-                  <div className="af-field-label">Add Review</div>
-                  <textarea className="af-textarea" name="addReview" value={form.addReview} onChange={handleChange} placeholder="Write your review here..." rows={3} />
-                </div>
               </div>
             </div>
-                  {/* Messages */}
-                  {success && <div className="af-success">✅ Report submitted successfully!</div>}
-                  {error && <div className="af-error">⚠️ {error}</div>}
+
+            {/* Messages */}
+            {success && <div className="af-success">✅ Report submitted successfully!</div>}
+            {error && <div className="af-error">⚠️ {error}</div>}
 
             {/* BUTTONS */}
             <div className="af-btn-row">
