@@ -98,8 +98,10 @@ const styles = `
   .af-hamburger {
     display: none;
     background: none; border: none;
-    color: #f1f5f9; font-size: 20px;
-    cursor: pointer; padding: 4px;
+    color: #f1f5f9; font-size: 22px;
+    cursor: pointer; padding: 6px 8px;
+    line-height: 1; align-items: center; justify-content: center;
+    min-width: 36px; min-height: 36px;
   }
   .af-mob-menu {
     display: none;
@@ -293,7 +295,7 @@ const styles = `
   @media (max-width: 768px) {
     .af-nav { padding: 0 16px; }
     .af-nav-links { display: none; }
-    .af-hamburger { display: block; }
+    .af-hamburger { display: flex; }
     .af-page-header { padding: 16px; }
     .af-page-title { font-size: 1.3rem; }
     .af-content { padding: 16px 14px 50px; }
@@ -426,7 +428,7 @@ export default function AgentForm() {
 
           {/* Mobile hamburger */}
           <button className="af-hamburger" onClick={() => setMenuOpen(o => !o)} aria-label="Toggle menu">
-            <i className={`ti ${menuOpen ? 'ti-x' : 'ti-menu-2'}`} aria-hidden="true"></i>
+            {menuOpen ? '✕' : '☰'}
           </button>
         </nav>
 
@@ -494,7 +496,7 @@ export default function AgentForm() {
             <div className="af-card">
               <div className="af-two-col">
                 <div>
-                  <div className="af-field-label">Name *</div>
+                  <div className="af-field-label">YOUR Name *</div>
                   <input className="af-input" type="text" name="agentName" value={form.agentName} onChange={handleChange} placeholder="Enter your name" required />
                 </div>
                 <div>

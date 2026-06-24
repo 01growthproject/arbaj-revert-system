@@ -65,9 +65,10 @@ const styles = `
   /* Mobile Menu */
   .ad-mobile-menu-btn {
     display: none;
-    font-size: 20px; color: #f1f5f9;
+    font-size: 22px; color: #f1f5f9;
     background: none; border: none; cursor: pointer;
-    padding: 4px;
+    padding: 4px; line-height: 1;
+    align-items: center; justify-content: center;
   }
   .ad-mobile-menu {
     display: none;
@@ -238,7 +239,7 @@ const styles = `
   .ad-label { font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 4px; display: block; }
 
   /* RESPONSIVE BREAKPOINTS */
-  
+
   /* Tablet (768px - 1024px) */
   @media (max-width: 1024px) {
     .ad-stats { grid-template-columns: repeat(3, 1fr); }
@@ -250,17 +251,17 @@ const styles = `
   /* Mobile (481px - 767px) */
   @media (max-width: 768px) {
     .ad-nav { padding: 0 16px; }
-    .ad-mobile-menu-btn { display: block; }
+    .ad-mobile-menu-btn { display: flex; align-items: center; justify-content: center; }
     .ad-nav-btn { display: none; }
     .ad-logout { display: none; }
-    
+
     .ad-page-header { padding: 14px 16px; }
     .ad-page-title { font-size: 1.2rem; }
     .ad-content { padding: 16px 14px 40px; }
-    
+
     .ad-stats { grid-template-columns: repeat(2, 1fr); }
     .ad-company-grid { grid-template-columns: 1fr; }
-    
+
     .ad-filter-row { flex-direction: column; align-items: stretch; }
     .ad-filter-item { width: 100%; }
     .ad-input { width: 100%; }
@@ -268,9 +269,9 @@ const styles = `
     .ad-date-btn { flex: 1; }
     .ad-filter-actions { width: 100%; flex-direction: row; }
     .ad-reset, .ad-export { flex: 1; }
-    
+
     .ad-assign-date-leads { grid-template-columns: 1fr; }
-    
+
     .ad-table { min-width: 700px; }
   }
 
@@ -281,45 +282,45 @@ const styles = `
     .ad-nav-title { font-size: 11px; }
     .ad-nav-sub { font-size: 9px; }
     .ad-mobile-menu-btn { font-size: 18px; }
-    
+
     .ad-page-header { padding: 12px 14px; }
     .ad-page-title { font-size: 1rem; }
     .ad-page-label { font-size: 9px; }
     .ad-page-date { font-size: 10px; }
-    
+
     .ad-content { padding: 12px 12px 30px; gap: 12px; }
-    
+
     .ad-stats { grid-template-columns: 1fr 1fr; gap: 8px; }
     .ad-stat { padding: 12px; }
     .ad-stat-val { font-size: 20px; }
     .ad-stat-label { font-size: 10px; }
     .ad-stat-icon { font-size: 14px; }
-    
+
     .ad-card { padding: 14px 16px; }
     .ad-card-title { font-size: 1rem; }
     .ad-card-sub { font-size: 10px; }
-    
+
     .ad-company-card { padding: 12px; }
     .ad-company-name { font-size: 11px; }
     .ad-company-sub { font-size: 9px; }
     .ad-company-row-label { font-size: 10px; }
     .ad-company-row-val { font-size: 12px; }
-    
+
     .ad-input { height: 34px; padding: 7px 10px; font-size: 12px; }
     .ad-date-btn { height: 34px; padding: 7px 10px; font-size: 11px; }
     .ad-reset, .ad-export { height: 34px; font-size: 11px; padding: 0 12px; }
-    
+
     .ad-table { min-width: 600px; }
     .ad-table th { font-size: 9px; padding: 8px 10px; }
     .ad-table td { font-size: 11px; padding: 9px 10px; }
     .ad-pill { font-size: 10px; padding: 2px 8px; }
     .ad-del { font-size: 10px; padding: 4px 10px; }
-    
+
     .ad-assign-table th { font-size: 9px; padding: 8px 6px; }
     .ad-assign-table td { font-size: 11px; padding: 9px 6px; }
-    
+
     .ad-success, .ad-err { font-size: 12px; padding: 8px 12px; }
-    
+
     .ad-loading, .ad-empty { padding: 30px 15px; font-size: 13px; }
   }
 
@@ -390,8 +391,6 @@ export default function AdminDashboard() {
     if (!window.Chart) return
     const Chart = window.Chart
 
-
-    // PIE chart — response breakdown
     if (pieRef.current) {
       if (pieChart.current) pieChart.current.destroy()
       const totalInt = reports.reduce((s, r) => s + (r.interested || 0), 0)
@@ -416,8 +415,6 @@ export default function AdminDashboard() {
       })
     }
 
-
-    // BAR chart — calls per agent (top 6)
     if (barRef.current) {
       if (barChart.current) barChart.current.destroy()
       const agentMap = {}
@@ -465,14 +462,11 @@ export default function AdminDashboard() {
     fetchReports()
   }
 
-
   const handleLogout = () => {
     localStorage.removeItem('adminToken')
     navigate('/admin')
   }
 
-
-  // ✅ Assigned leads fetch karo
   const fetchAssignedLeads = useCallback(async () => {
     try {
       const res = await API.get('/api/assigned-leads/all', {
@@ -482,11 +476,8 @@ export default function AdminDashboard() {
     } catch {}
   }, [])
 
-
   useEffect(() => { fetchAssignedLeads() }, [fetchAssignedLeads])
 
-
-  // ✅ Admin leads assign kare
   const handleAssignSubmit = async (e) => {
     e.preventDefault()
     if (!assignForm.agentName || !assignForm.company || !assignForm.leadsAssigned) {
@@ -510,13 +501,11 @@ export default function AdminDashboard() {
     }
   }
 
-
   const handleDeleteAssigned = async (id) => {
     if (!confirm('Delete this assigned lead?')) return
     await API.delete(`/api/assigned-leads/${id}`)
     fetchAssignedLeads()
   }
-
 
   const exportCSV = () => {
     if (!reports.length) return alert('No data to export!')
@@ -529,8 +518,6 @@ export default function AdminDashboard() {
     a.click()
   }
 
-
-  // Company wise summary
   const companySummary = COMPANIES.slice(1).map(name => {
     const co = reports.filter(r => r.company === name)
     return {
@@ -543,30 +530,23 @@ export default function AdminDashboard() {
     }
   })
 
-
   const coColors = ['#3b82f6', '#10b981', '#8b5cf6']
-
 
   const pill = (val, color, bg) => (
     <span className="ad-pill" style={{ color, background: bg }}>{val ?? 0}</span>
   )
-
 
   return (
     <>
       <style>{styles}</style>
       <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet" />
 
-
       <div className="ad-root">
-
 
         {/* NAVBAR */}
         <nav className="ad-nav">
           <div className="ad-nav-brand">
-            <div className="ad-nav-icon">
-              <i className="ti ti-world" aria-hidden="true"></i>
-            </div>
+            <div className="ad-nav-icon">🌐</div>
             <div>
               <div className="ad-nav-title">Arbaj Technology</div>
               <div className="ad-nav-sub">Revert System</div>
@@ -576,25 +556,27 @@ export default function AdminDashboard() {
             <button className="ad-nav-btn active">Dashboard</button>
             <button className="ad-nav-btn" onClick={() => navigate('/')}>Agent Form</button>
             <button className="ad-logout" onClick={handleLogout}>
-              <i className="ti ti-logout" aria-hidden="true"></i>
-              Logout
+              ⎋ Logout
             </button>
-            <button className="ad-mobile-menu-btn" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-              <i className={mobileMenuOpen ? "ti ti-close" : "ti ti-menu"} aria-hidden="true"></i>
+            {/* ✅ Unicode hamburger — no icon library needed */}
+            <button
+              className="ad-mobile-menu-btn"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? '✕' : '☰'}
             </button>
           </div>
         </nav>
 
         {/* MOBILE MENU */}
         <div className={`ad-mobile-menu ${mobileMenuOpen ? 'active' : ''}`}>
-          <button className="active" onClick={() => { navigate('/admin/dashboard'); setMobileMenuOpen(false); }}>Dashboard</button>
-          <button onClick={() => { navigate('/'); setMobileMenuOpen(false); }}>Agent Form</button>
-          <button className="ad-mobile-logout" onClick={() => { handleLogout(); setMobileMenuOpen(false); }}>
-            <i className="ti ti-logout" aria-hidden="true"></i>
-            Logout
+          <button className="active" onClick={() => { navigate('/admin/dashboard'); setMobileMenuOpen(false) }}>Dashboard</button>
+          <button onClick={() => { navigate('/'); setMobileMenuOpen(false) }}>Agent Form</button>
+          <button className="ad-mobile-logout" onClick={() => { handleLogout(); setMobileMenuOpen(false) }}>
+            ⎋ Logout
           </button>
         </div>
-
 
         {/* PAGE HEADER */}
         <div className="ad-page-header">
@@ -605,55 +587,42 @@ export default function AdminDashboard() {
           <div className="ad-page-date">{todayDisplay}</div>
         </div>
 
-
         <div className="ad-content">
-
 
           {/* STAT CARDS */}
           <div className="ad-stats">
             {[
-              { label: 'Total Reports', val: summary.totalReports ?? 0, color: '#f1f5f9', icon: 'ti-file-text' },
-              { label: 'Total Calls', val: summary.totalCalls ?? 0, color: '#3b82f6', icon: 'ti-phone' },
-              { label: 'Interested', val: summary.totalInterested ?? 0, color: '#10b981', icon: 'ti-check' },
-              { label: 'Docs Received', val: summary.totalDocs ?? 0, color: '#06b6d4', icon: 'ti-file-check' },
-              { label: 'Conversion Rate', val: summary.conversionRate ? summary.conversionRate + '%' : '0%', color: '#f59e0b', icon: 'ti-trending-up' },
+              { label: 'Total Reports', val: summary.totalReports ?? 0, color: '#f1f5f9', icon: '📋' },
+              { label: 'Total Calls',   val: summary.totalCalls ?? 0,   color: '#3b82f6', icon: '📞' },
+              { label: 'Interested',    val: summary.totalInterested ?? 0, color: '#10b981', icon: '✅' },
+              { label: 'Docs Received', val: summary.totalDocs ?? 0,    color: '#06b6d4', icon: '📄' },
+              { label: 'Conversion Rate', val: summary.conversionRate ? summary.conversionRate + '%' : '0%', color: '#f59e0b', icon: '📈' },
             ].map(s => (
               <div className="ad-stat" key={s.label}>
                 <div className="ad-stat-top">
                   <span className="ad-stat-label">{s.label}</span>
-                  <i className={`ti ${s.icon} ad-stat-icon`} style={{ color: s.color }} aria-hidden="true"></i>
+                  <span className="ad-stat-icon">{s.icon}</span>
                 </div>
                 <div className="ad-stat-val" style={{ color: s.color }}>{s.val}</div>
               </div>
             ))}
           </div>
 
-
           {/* CHARTS ROW */}
           <div className="ad-charts-row">
-
-
-            {/* BAR CHART */}
             <div className="ad-card">
               <div className="ad-card-title">Top Agents by Calls</div>
               <div className="ad-card-sub">Based on filtered data</div>
               <div style={{ position: 'relative', height: 200 }}>
-                <canvas ref={barRef} role="img" aria-label="Bar chart showing top agents by total calls">Agent call counts</canvas>
+                <canvas ref={barRef} role="img" aria-label="Bar chart showing top agents by total calls" />
               </div>
             </div>
 
-
-            {/* PIE CHART */}
             <div className="ad-card">
               <div className="ad-card-title">Response Breakdown</div>
               <div className="ad-card-sub">Filtered data distribution</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
-                {[
-                  ['#10b981', 'Interested'],
-                  ['#ef4444', 'Not Interested'],
-                  ['#8b5cf6', 'No Passport'],
-                  ['#f97316', 'Not Pick'],
-                ].map(([color, label]) => (
+                {[['#10b981','Interested'],['#ef4444','Not Interested'],['#8b5cf6','No Passport'],['#f97316','Not Pick']].map(([color, label]) => (
                   <span key={label} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#64748b' }}>
                     <span style={{ width: 8, height: 8, borderRadius: 2, background: color, display: 'inline-block' }}></span>
                     {label}
@@ -661,11 +630,10 @@ export default function AdminDashboard() {
                 ))}
               </div>
               <div style={{ position: 'relative', height: 160 }}>
-                <canvas ref={pieRef} role="img" aria-label="Doughnut chart showing response breakdown">Response distribution</canvas>
+                <canvas ref={pieRef} role="img" aria-label="Doughnut chart showing response breakdown" />
               </div>
             </div>
           </div>
-
 
           {/* COMPANY COMPARISON */}
           <div className="ad-card">
@@ -697,15 +665,10 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-
           {/* ASSIGN LEADS SECTION */}
           <div className="ad-card">
-            <div className="ad-card-title" style={{ marginBottom: 16 }}>
-              <i className="ti ti-target" style={{ fontSize: 16, color: '#3b82f6' }} aria-hidden="true"></i>
-              Assign Leads to Agent
-            </div>
+            <div className="ad-card-title" style={{ marginBottom: 16 }}>🎯 Assign Leads to Agent</div>
             <div className="ad-assign-grid">
-
 
               {/* LEFT — ASSIGN FORM */}
               <div>
@@ -740,20 +703,22 @@ export default function AdminDashboard() {
                     <span className="ad-label">Note (optional)</span>
                     <input className="ad-input" style={{ width: '100%' }} type="text" placeholder="e.g. WhatsApp se bheje gaye..." value={assignForm.note} onChange={e => setAssignForm(p => ({ ...p, note: e.target.value }))} />
                   </div>
-                  <button type="submit" style={{ padding: '11px 20px', background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', color: 'white', border: 'none', borderRadius: 10, fontFamily: 'DM Sans, sans-serif', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, width: 'fit-content' }} disabled={assignLoading}>
-                    <i className="ti ti-send" aria-hidden="true"></i>
-                    {assignLoading ? 'Assigning...' : 'Assign Leads'}
+                  <button
+                    type="submit"
+                    style={{ padding: '11px 20px', background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', color: 'white', border: 'none', borderRadius: 10, fontFamily: 'DM Sans, sans-serif', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, width: 'fit-content' }}
+                    disabled={assignLoading}
+                  >
+                    ➤ {assignLoading ? 'Assigning...' : 'Assign Leads'}
                   </button>
                 </form>
               </div>
-
 
               {/* RIGHT — TODAY'S ASSIGNED LIST */}
               <div>
                 <div className="ad-card-sub" style={{ marginBottom: 10 }}>Aaj assign ki gayi leads — {today}</div>
                 {assignedLeads.length === 0 ? (
                   <div style={{ textAlign: 'center', padding: '30px 20px', color: '#64748b', background: '#1a2235', borderRadius: 12 }}>
-                    <i className="ti ti-inbox" style={{ fontSize: 28, display: 'block', marginBottom: 8 }} aria-hidden="true"></i>
+                    <span style={{ fontSize: 28, display: 'block', marginBottom: 8 }}>📭</span>
                     <p style={{ fontSize: 13 }}>Aaj koi leads assign nahi ki gayi</p>
                   </div>
                 ) : (
@@ -761,19 +726,17 @@ export default function AdminDashboard() {
                     <table className="ad-assign-table">
                       <thead>
                         <tr>
-                          <th>Agent</th>
-                          <th>Company</th>
-                          <th>Leads</th>
-                          <th>Note</th>
-                          <th>Action</th>
+                          <th>Agent</th><th>Company</th><th>Leads</th><th>Note</th><th>Action</th>
                         </tr>
                       </thead>
                       <tbody>
                         {assignedLeads.map(a => (
                           <tr key={a._id}>
                             <td style={{ fontWeight: 600 }}>{a.agentName}</td>
-                            <td style={{ color: '#64748b', fontSize: 12, maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.company}</td>
-                            <td><span style={{ background: 'rgba(59,130,246,0.12)', color: '#3b82f6', padding: '3px 10px', borderRadius: 100, fontSize: 13, fontWeight: 700 }}>{a.leadsAssigned}</span></td>
+                            <td style={{ color: '#64748b', fontSize: 12 }}>{a.company}</td>
+                            <td>
+                              <span style={{ background: 'rgba(59,130,246,0.12)', color: '#3b82f6', padding: '3px 10px', borderRadius: 100, fontSize: 13, fontWeight: 700 }}>{a.leadsAssigned}</span>
+                            </td>
                             <td style={{ color: '#64748b', fontSize: 12 }}>{a.note || '—'}</td>
                             <td>
                               <button onClick={() => handleDeleteAssigned(a._id)} style={{ padding: '4px 10px', background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.25)', borderRadius: 7, fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
@@ -790,14 +753,12 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-
           {/* FILTERS + TABLE */}
           <div className="ad-card">
             <div className="ad-card-title" style={{ marginBottom: 14 }}>
               All Reports
               <span className="ad-count">{reports.length} entries</span>
             </div>
-
 
             {/* FILTERS */}
             <div className="ad-filter-row">
@@ -808,12 +769,10 @@ export default function AdminDashboard() {
                 </select>
               </div>
 
-
               <div className="ad-filter-item">
                 <span className="ad-filter-label">Agent Name</span>
                 <input className="ad-input" style={{ minWidth: 150 }} type="text" placeholder="Search agent..." value={filters.agentName} onChange={e => setFilters(p => ({ ...p, agentName: e.target.value }))} />
               </div>
-
 
               <div className="ad-filter-item">
                 <span className="ad-filter-label">Date Mode</span>
@@ -824,14 +783,12 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-
               {dateMode === 'single' && (
                 <div className="ad-filter-item">
                   <span className="ad-filter-label">Date</span>
                   <input className="ad-input" type="date" value={filters.date} onChange={e => setFilters(p => ({ ...p, date: e.target.value }))} />
                 </div>
               )}
-
 
               {dateMode === 'range' && (
                 <>
@@ -846,18 +803,15 @@ export default function AdminDashboard() {
                 </>
               )}
 
-
               <div className="ad-filter-actions">
                 <button className="ad-reset" onClick={() => { setFilters({ company: '', agentName: '', date: today, startDate: '', endDate: '' }); setDateMode('single') }}>
                   Reset
                 </button>
                 <button className="ad-export" onClick={exportCSV}>
-                  <i className="ti ti-download" aria-hidden="true"></i>
-                  Export CSV
+                  ⬇ Export CSV
                 </button>
               </div>
             </div>
-
 
             {/* TABLE */}
             {loading ? (
@@ -872,7 +826,7 @@ export default function AdminDashboard() {
                 <table className="ad-table">
                   <thead>
                     <tr>
-                      {['Date', 'Company', 'Agent', 'Calls', 'Leads', 'Interested', 'Not Int.', 'No Pass.', 'Docs', 'Not Pick', 'Other', 'Review', 'Action'].map(h => (
+                      {['Date','Company','Agent','Calls','Leads','Interested','Not Int.','No Pass.','Docs','Not Pick','Other','Review','Action'].map(h => (
                         <th key={h}>{h}</th>
                       ))}
                     </tr>
@@ -902,7 +856,6 @@ export default function AdminDashboard() {
               </div>
             )}
           </div>
-
 
         </div>
       </div>

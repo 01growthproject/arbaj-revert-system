@@ -1,13 +1,6 @@
 import { useState, useCallback } from 'react'
 import API from '../utils/api'
 
-const COMPANIES = [
-  'All Companies',
-  'Growth Overseas International Edutech',
-  'Famous Visa Consultant',
-  'Ocean Global Overseas'
-]
-
 const today = new Date().toISOString().split('T')[0]
 const todayDisplay = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'short', year: 'numeric' })
 
@@ -21,7 +14,6 @@ const styles = `
     color: #f1f5f9;
   }
 
-  /* NAVBAR */
   .mr-nav {
     background: #111827; border-bottom: 1px solid #1e2d45;
     padding: 0 28px; height: 56px;
@@ -56,7 +48,12 @@ const styles = `
   }
   .mr-nav-admin:hover { background: #1a2235; color: #f1f5f9; }
 
-  /* PAGE HEADER */
+  .mr-hamburger { display: none; background: none; border: none; color: #f1f5f9; font-size: 22px; cursor: pointer; padding: 6px 8px; line-height: 1; align-items: center; justify-content: center; min-width: 36px; min-height: 36px; }
+  .mr-mob-menu { display: none; flex-direction: column; background: #111827; border-bottom: 1px solid #1e2d45; padding: 8px 16px 12px; gap: 4px; }
+  .mr-mob-menu.open { display: flex; }
+  .mr-mob-link { font-size: 13px; color: #64748b; padding: 8px 12px; border-radius: 8px; text-decoration: none; font-weight: 500; }
+  .mr-mob-link.active { background: rgba(59,130,246,0.15); color: #3b82f6; }
+
   .mr-page-header {
     background: #111827; border-bottom: 1px solid #1e2d45;
     padding: 18px 28px;
@@ -65,7 +62,6 @@ const styles = `
   .mr-page-title { font-family: 'DM Serif Display', serif; font-size: 1.5rem; font-weight: 400; }
   .mr-page-sub { font-size: 12px; color: #64748b; margin-top: 3px; }
 
-  /* CONTENT */
   .mr-content {
     max-width: 1100px;
     margin: 0 auto;
@@ -73,7 +69,6 @@ const styles = `
     display: flex; flex-direction: column; gap: 16px;
   }
 
-  /* SEARCH CARD */
   .mr-card { background: #111827; border: 1px solid #1e2d45; border-radius: 14px; padding: 18px 20px; }
   .mr-card-title {
     font-family: 'DM Serif Display', serif;
@@ -81,8 +76,7 @@ const styles = `
     display: flex; align-items: center; gap: 8px;
   }
 
-  /* SEARCH FORM */
-  .mr-search-grid { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 12px; align-items: flex-end; }
+  .mr-search-grid { display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: flex-end; }
   .mr-field { display: flex; flex-direction: column; gap: 6px; }
   .mr-label { font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.7px; }
   .mr-input {
@@ -94,7 +88,6 @@ const styles = `
   }
   .mr-input:focus { border-color: #3b82f6; background: rgba(59,130,246,0.05); box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
   .mr-input::placeholder { color: #475569; }
-  .mr-input option { background: #1a2235; }
   .mr-btn-search {
     height: 38px; padding: 0 20px;
     background: linear-gradient(135deg, #3b82f6, #1d4ed8);
@@ -106,7 +99,6 @@ const styles = `
   .mr-btn-search:hover { transform: translateY(-1px); box-shadow: 0 5px 16px rgba(59,130,246,0.3); }
   .mr-btn-search:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
-  /* SUMMARY STATS */
   .mr-stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
   .mr-stat {
     background: #1a2235; border: 1px solid #1e2d45;
@@ -115,14 +107,10 @@ const styles = `
   .mr-stat-label { font-size: 10px; color: #64748b; font-weight: 600; margin-bottom: 7px; display: flex; align-items: center; gap: 5px; }
   .mr-stat-val { font-size: 22px; font-weight: 700; }
 
-  /* TABLE */
-  .mr-table-header {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 14px; flex-wrap: wrap; gap: 10px;
-  }
+  .mr-table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
   .mr-count { background: rgba(59,130,246,0.12); color: #3b82f6; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 100px; margin-left: 8px; }
   .mr-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .mr-table { width: 100%; border-collapse: collapse; min-width: 900px; }
+  .mr-table { width: 100%; border-collapse: collapse; min-width: 800px; }
   .mr-table th {
     padding: 10px 12px; text-align: left; font-size: 10px; font-weight: 700;
     text-transform: uppercase; letter-spacing: 0.8px; color: #64748b;
@@ -133,22 +121,11 @@ const styles = `
   .mr-table tbody tr:last-child td { border-bottom: none; }
   .mr-pill { padding: 3px 10px; border-radius: 100px; font-size: 12px; font-weight: 700; }
 
-  /* STATES */
   .mr-empty { text-align: center; padding: 50px 20px; color: #64748b; }
-  .mr-empty-icon { font-size: 2.5rem; margin-bottom: 12px; }
   .mr-initial { text-align: center; padding: 50px 20px; color: #64748b; }
-  .mr-initial-icon { font-size: 3rem; margin-bottom: 12px; color: #1e2d45; }
   .mr-loading { text-align: center; padding: 40px; color: #64748b; }
   .mr-error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 11px 15px; border-radius: 10px; font-size: 14px; font-weight: 600; }
 
-  /* HAMBURGER */
-  .mr-hamburger { display: none; background: none; border: none; color: #f1f5f9; font-size: 20px; cursor: pointer; padding: 4px; }
-  .mr-mob-menu { display: none; flex-direction: column; background: #111827; border-bottom: 1px solid #1e2d45; padding: 8px 16px 12px; gap: 4px; }
-  .mr-mob-menu.open { display: flex; }
-  .mr-mob-link { font-size: 13px; color: #64748b; padding: 8px 12px; border-radius: 8px; text-decoration: none; font-weight: 500; }
-  .mr-mob-link.active { background: rgba(59,130,246,0.15); color: #3b82f6; }
-
-  /* READONLY BADGE */
   .mr-readonly-badge {
     background: rgba(245,158,11,0.12); color: #f59e0b;
     border: 1px solid rgba(245,158,11,0.25);
@@ -160,7 +137,7 @@ const styles = `
   @media (max-width: 900px) {
     .mr-nav { padding: 0 16px; }
     .mr-nav-links { display: none; }
-    .mr-hamburger { display: block; }
+    .mr-hamburger { display: flex; }
     .mr-page-header { padding: 14px 16px; }
     .mr-content { padding: 16px 14px 50px; }
     .mr-search-grid { grid-template-columns: 1fr; }
@@ -173,7 +150,6 @@ const styles = `
 
 export default function MyReports() {
   const [agentName, setAgentName] = useState('')
-  const [company, setCompany] = useState('')
   const [date, setDate] = useState('')
   const [reports, setReports] = useState([])
   const [summary, setSummary] = useState(null)
@@ -188,8 +164,8 @@ export default function MyReports() {
     setError('')
     setLoading(true)
     try {
+      // ✅ Sirf naam aur date — company ka koi role nahi
       const params = { agentName: agentName.trim() }
-      if (company && company !== 'All Companies') params.company = company
       if (date) params.date = date
       const res = await API.get('/api/reports', { params })
       setReports(res.data.reports)
@@ -200,7 +176,7 @@ export default function MyReports() {
     } finally {
       setLoading(false)
     }
-  }, [agentName, company, date])
+  }, [agentName, date])
 
   const pill = (val, color, bg) => (
     <span className="mr-pill" style={{ color, background: bg }}>{val ?? 0}</span>
@@ -233,7 +209,7 @@ export default function MyReports() {
             </a>
           </div>
           <button className="mr-hamburger" onClick={() => setMenuOpen(o => !o)} aria-label="Toggle menu">
-            <i className={`ti ${menuOpen ? 'ti-x' : 'ti-menu-2'}`} aria-hidden="true"></i>
+            {menuOpen ? '✕' : '☰'}
           </button>
         </nav>
 
@@ -267,6 +243,7 @@ export default function MyReports() {
             {error && <div className="mr-error" style={{ marginBottom: 14 }}>⚠️ {error}</div>}
 
             <form onSubmit={handleSearch}>
+              {/* ✅ Sirf naam + date — company filter nahi */}
               <div className="mr-search-grid">
                 <div className="mr-field">
                   <span className="mr-label">Your Name *</span>
@@ -278,12 +255,6 @@ export default function MyReports() {
                     onChange={e => setAgentName(e.target.value)}
                     required
                   />
-                </div>
-                <div className="mr-field">
-                  <span className="mr-label">Company</span>
-                  <select className="mr-input" value={company} onChange={e => setCompany(e.target.value)}>
-                    {COMPANIES.map(c => <option key={c}>{c}</option>)}
-                  </select>
                 </div>
                 <div className="mr-field">
                   <span className="mr-label">Date (optional)</span>
@@ -303,19 +274,18 @@ export default function MyReports() {
             </form>
           </div>
 
-          {/* RESULTS */}
+          {/* INITIAL STATE */}
           {!searched && !loading && (
             <div className="mr-card">
               <div className="mr-initial">
-                <div className="mr-initial-icon">
-                  <i className="ti ti-file-search" style={{ fontSize: '3rem', color: '#1e2d45' }} aria-hidden="true"></i>
-                </div>
+                <i className="ti ti-file-search" style={{ fontSize: '3rem', color: '#1e2d45', display: 'block', marginBottom: 12 }} aria-hidden="true"></i>
                 <p style={{ fontSize: '0.95rem', marginBottom: 6 }}>Enter your name to view your reports</p>
                 <p style={{ fontSize: '0.82rem', color: '#475569' }}>Your submitted reports will appear here</p>
               </div>
             </div>
           )}
 
+          {/* RESULTS */}
           {searched && summary && (
             <>
               {/* SUMMARY STATS */}
@@ -348,7 +318,7 @@ export default function MyReports() {
 
                 {reports.length === 0 ? (
                   <div className="mr-empty">
-                    <div className="mr-empty-icon">📋</div>
+                    <div style={{ fontSize: '2.5rem', marginBottom: 12 }}>📋</div>
                     <p>No reports found for "{agentName}"</p>
                     <p style={{ fontSize: '0.82rem', marginTop: 6, color: '#475569' }}>Make sure your name matches exactly as submitted</p>
                   </div>
@@ -357,7 +327,7 @@ export default function MyReports() {
                     <table className="mr-table">
                       <thead>
                         <tr>
-                          {['Date', 'Company', 'Calls', 'Leads', 'Interested', 'Not Int.', 'No Pass.', 'Docs', 'Not Pick', 'Other', 'Review'].map(h => (
+                          {['Date', 'Company', 'Calls', 'Leads', 'Interested', 'Not Int.', 'No Pass.', 'Docs', 'Not Pick', 'Other'].map(h => (
                             <th key={h}>{h}</th>
                           ))}
                         </tr>
@@ -375,7 +345,6 @@ export default function MyReports() {
                             <td>{pill(r.docsReceived, '#06b6d4', 'rgba(6,182,212,0.12)')}</td>
                             <td>{pill(r.notPickCalls, '#f97316', 'rgba(249,115,22,0.12)')}</td>
                             <td style={{ color: '#64748b', maxWidth: 110, overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.other || '—'}</td>
-                            <td style={{ color: '#06b6d4', maxWidth: 130, overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.addReview || '—'}</td>
                           </tr>
                         ))}
                       </tbody>
