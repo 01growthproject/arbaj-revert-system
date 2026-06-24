@@ -351,6 +351,7 @@ export default function AdminDashboard() {
   const [assignSuccess, setAssignSuccess] = useState(false)
   const [assignError, setAssignError] = useState('')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [modal, setModal] = useState(null) // { title, text }
   const navigate = useNavigate()
   const barRef = useRef(null)
   const pieRef = useRef(null)
@@ -509,9 +510,9 @@ export default function AdminDashboard() {
 
   const exportCSV = () => {
     if (!reports.length) return alert('No data to export!')
-    const header = 'Date,Company,Agent,Total Calls,Total Leads,Interested,Not Interested,No Passport,Docs Received,Not Pick Calls,Other'
+    const header = 'Date,Company,Agent,Total Calls,Total Leads,Interested,Not Interested,No Passport,Docs Received,Not Pick Calls,Other,Add Review'
     const rows = reports.map(r =>
-      `"${r.reportDate}","${r.company}","${r.agentName}",${r.totalCalls},${r.totalLeadsReceived ?? 0},${r.interested},${r.notInterested},${r.noPassport},${r.docsReceived},${r.notPickCalls},"${r.other ?? ''}",}"`
+      `"${r.reportDate}","${r.company}","${r.agentName}",${r.totalCalls},${r.totalLeadsReceived ?? 0},${r.interested},${r.notInterested},${r.noPassport},${r.docsReceived},${r.notPickCalls},"${r.other ?? ''}","${r.addReview ?? ''}"`
     )
     const blob = new Blob([[header, ...rows].join('\n')], { type: 'text/csv' })
     const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `revert_${today}.csv` })
@@ -826,7 +827,7 @@ export default function AdminDashboard() {
                 <table className="ad-table">
                   <thead>
                     <tr>
-                      {['Date','Company','Agent','Calls','Leads','Interested','Not Int.','No Pass.','Docs','Not Pick','Other','Action'].map(h => (
+                      {['Date','Company','Agent','Calls','Leads','Interested','Not Int.','No Pass.','Docs','Not Pick','Other','Review','Action'].map(h => (
                         <th key={h}>{h}</th>
                       ))}
                     </tr>
@@ -844,8 +845,16 @@ export default function AdminDashboard() {
                         <td>{pill(r.noPassport, '#8b5cf6', 'rgba(139,92,246,0.12)')}</td>
                         <td>{pill(r.docsReceived, '#06b6d4', 'rgba(6,182,212,0.12)')}</td>
                         <td>{pill(r.notPickCalls, '#f97316', 'rgba(249,115,22,0.12)')}</td>
-                        <td style={{ color: '#64748b', maxWidth: 110, overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.other || '—'}</td>
-                        {/* <td style={{ color: '#06b6d4', maxWidth: 130, overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.addReview || '—'}</td> */}
+                        <td
+                          title={r.other || ''}
+                          style={{ color: '#64748b', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', cursor: r.other ? 'pointer' : 'default' }}
+                          onClick={() => r.other && setModal({ title: 'Other', text: r.other })}
+                        >{r.other || '—'}</td>
+                        <td
+                          title={r.addReview || ''}
+                          style={{ color: '#06b6d4', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', cursor: r.addReview ? 'pointer' : 'default' }}
+                          onClick={() => r.addReview && setModal({ title: 'Add Review', text: r.addReview })}
+                        >{r.addReview || '—'}</td>
                         <td>
                           <button className="ad-del" onClick={() => handleDelete(r._id)}>Delete</button>
                         </td>
@@ -858,6 +867,29 @@ export default function AdminDashboard() {
           </div>
 
         </div>
+
+        {/* TEXT MODAL — Other / Review full text */}
+        {modal && (
+          <div
+            onClick={() => setModal(null)}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+          >
+            <div
+              onClick={e => e.stopPropagation()}
+              style={{ background: '#111827', border: '1px solid #1e2d45', borderRadius: 14, padding: '20px 24px', maxWidth: 480, width: '100%' }}
+            >
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 10 }}>{modal.title}</div>
+              <p style={{ fontSize: 14, color: '#f1f5f9', lineHeight: 1.7, wordBreak: 'break-word' }}>{modal.text}</p>
+              <button
+                onClick={() => setModal(null)}
+                style={{ marginTop: 18, padding: '8px 18px', background: 'rgba(59,130,246,0.12)', color: '#3b82f6', border: '1px solid rgba(59,130,246,0.25)', borderRadius: 9, fontFamily: 'DM Sans, sans-serif', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
+
       </div>
     </>
   )
