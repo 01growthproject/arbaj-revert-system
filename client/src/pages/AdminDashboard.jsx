@@ -509,9 +509,9 @@ export default function AdminDashboard() {
 
   const exportCSV = () => {
     if (!reports.length) return alert('No data to export!')
-    const header = 'Date,Company,Agent,Total Calls,Total Leads,Interested,Not Interested,No Passport,Docs Received,Not Pick Calls,Other,Add Review'
+    const header = 'Date,Company,Agent,Total Calls,Total Leads,Interested,Not Interested,No Passport,Docs Received,Not Pick Calls,Other'
     const rows = reports.map(r =>
-      `"${r.reportDate}","${r.company}","${r.agentName}",${r.totalCalls},${r.totalLeadsReceived ?? 0},${r.interested},${r.notInterested},${r.noPassport},${r.docsReceived},${r.notPickCalls},"${r.other ?? ''}","${r.addReview ?? ''}"`
+      `"${r.reportDate}","${r.company}","${r.agentName}",${r.totalCalls},${r.totalLeadsReceived ?? 0},${r.interested},${r.notInterested},${r.noPassport},${r.docsReceived},${r.notPickCalls},"${r.other ?? ''}",}"`
     )
     const blob = new Blob([[header, ...rows].join('\n')], { type: 'text/csv' })
     const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `revert_${today}.csv` })
@@ -826,7 +826,7 @@ export default function AdminDashboard() {
                 <table className="ad-table">
                   <thead>
                     <tr>
-                      {['Date','Company','Agent','Calls','Leads','Interested','Not Int.','No Pass.','Docs','Not Pick','Other','Review','Action'].map(h => (
+                      {['Date','Company','Agent','Calls','Leads','Interested','Not Int.','No Pass.','Docs','Not Pick','Other','Action'].map(h => (
                         <th key={h}>{h}</th>
                       ))}
                     </tr>
@@ -845,7 +845,7 @@ export default function AdminDashboard() {
                         <td>{pill(r.docsReceived, '#06b6d4', 'rgba(6,182,212,0.12)')}</td>
                         <td>{pill(r.notPickCalls, '#f97316', 'rgba(249,115,22,0.12)')}</td>
                         <td style={{ color: '#64748b', maxWidth: 110, overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.other || '—'}</td>
-                        <td style={{ color: '#06b6d4', maxWidth: 130, overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.addReview || '—'}</td>
+                        {/* <td style={{ color: '#06b6d4', maxWidth: 130, overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.addReview || '—'}</td> */}
                         <td>
                           <button className="ad-del" onClick={() => handleDelete(r._id)}>Delete</button>
                         </td>
