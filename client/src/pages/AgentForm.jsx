@@ -494,7 +494,7 @@ export default function AgentForm() {
             <div className="af-card">
               <div className="af-two-col">
                 <div>
-                  <div className="af-field-label">YOUR Name *</div>
+                  <div className="af-field-label">Name *</div>
                   <input className="af-input" type="text" name="agentName" value={form.agentName} onChange={handleChange} placeholder="Enter your name" required />
                 </div>
                 <div>
