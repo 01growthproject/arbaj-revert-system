@@ -1,6 +1,5 @@
 const AssignedLead = require('../models/AssignedLead')
 
-// ✅ POST /api/assigned-leads — Admin leads assign kare
 const assignLeads = async (req, res) => {
   try {
     const { agentName, company, assignedDate, leadsAssigned, note } = req.body
@@ -22,7 +21,6 @@ const assignLeads = async (req, res) => {
   }
 }
 
-// ✅ GET /api/assigned-leads — Agent apni assigned leads fetch kare (no auth)
 const getAgentLeads = async (req, res) => {
   try {
     const { agentName, company, assignedDate } = req.query
@@ -31,10 +29,10 @@ const getAgentLeads = async (req, res) => {
       return res.status(400).json({ message: 'agentName, company and assignedDate required' })
     }
 
-    // Date normalize karo — YYYY-MM-DD format ensure karo
+
     let normalizedDate = assignedDate
     if (assignedDate && assignedDate.includes('-') && assignedDate.length === 10) {
-      // Already YYYY-MM-DD format mein hai
+    
       normalizedDate = assignedDate
     }
 
@@ -54,7 +52,7 @@ const getAgentLeads = async (req, res) => {
   }
 }
 
-// ✅ GET /api/assigned-leads/all — Admin sab assigned leads dekhe
+
 const getAllAssignedLeads = async (req, res) => {
   try {
     const { company, assignedDate, agentName } = req.query
@@ -70,7 +68,7 @@ const getAllAssignedLeads = async (req, res) => {
   }
 }
 
-// ✅ DELETE /api/assigned-leads/:id — Admin delete kare
+
 const deleteAssignedLead = async (req, res) => {
   try {
     await AssignedLead.findByIdAndDelete(req.params.id)

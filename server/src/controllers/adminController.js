@@ -1,6 +1,5 @@
 const jwt = require('jsonwebtoken')
 
-// ✅ POST /api/admin/login
 const adminLogin = async (req, res) => {
   try {
     const { password } = req.body
@@ -9,7 +8,7 @@ const adminLogin = async (req, res) => {
       return res.status(401).json({ message: 'Invalid password' })
     }
 
-    // ✅ Token 7 days tak valid rahega — bar bar login nahi karna padega
+  
     const token = jwt.sign(
       { role: 'admin' },
       process.env.JWT_SECRET,

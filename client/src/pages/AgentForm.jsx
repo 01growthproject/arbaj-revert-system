@@ -17,12 +17,16 @@ const COMPANY_MAP = {
 const today = new Date().toISOString().split('T')[0]
 const todayDisplay = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'short', year: 'numeric' })
 
+// ✅ addReview removed
 const defaultForm = {
   company: '', agentName: '', reportDate: today,
   totalCalls: 0, interested: 0, notInterested: 0,
   noPassport: 0, docsReceived: 0, notPickCalls: 0,
-  totalLeadsReceived: 0, other: '', addReview: ''
+  totalLeadsReceived: 0, other: ''
 }
+
+// ✅ "Other" field constraint: only letters + space, max 50 chars
+const OTHER_MAX_LENGTH = 50
 
 const styles = `
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -254,6 +258,12 @@ const styles = `
   }
   .af-textarea::placeholder { color: #475569; }
 
+  /* CHAR COUNTER */
+  .af-char-counter {
+    font-size: 11px; color: #475569; margin-top: 4px; text-align: right;
+  }
+  .af-char-counter.near-limit { color: #f59e0b; }
+
   /* BUTTONS */
   .af-btn-row { display: flex; gap: 10px; align-items: center; }
   .af-btn-submit {
@@ -356,6 +366,14 @@ export default function AgentForm() {
   const handleChange = (e) => {
     const { name, value } = e.target
     setForm(prev => ({ ...prev, [name]: value }))
+  }
+
+  // ✅ "Other" field: only letters + space allowed, max 50 characters
+  const handleOtherChange = (e) => {
+    const raw = e.target.value
+    const filtered = raw.replace(/[^a-zA-Z\s]/g, '')
+    const limited = filtered.slice(0, OTHER_MAX_LENGTH)
+    setForm(prev => ({ ...prev, other: limited }))
   }
 
   useEffect(() => {
@@ -564,12 +582,23 @@ export default function AgentForm() {
               </div>
             </div>
 
-            {/* OTHER + REVIEW */}
+            {/* OTHER — letters only, max 50 chars */}
             <div className="af-card">
               <div className="af-two-col">
                 <div>
                   <div className="af-field-label">Other</div>
-                  <textarea className="af-textarea" name="other" value={form.other} onChange={handleChange} placeholder="Write other details here..." rows={3} />
+                  <textarea
+                    className="af-textarea"
+                    name="other"
+                    value={form.other}
+                    onChange={handleOtherChange}
+                    placeholder=""
+                    rows={3}
+                    maxLength={OTHER_MAX_LENGTH}
+                  />
+                  <div className={`af-char-counter ${form.other.length >= OTHER_MAX_LENGTH - 5 ? 'near-limit' : ''}`}>
+                    {form.other.length}/{OTHER_MAX_LENGTH}
+                  </div>
                 </div>
               </div>
             </div>
@@ -602,7 +631,7 @@ export default function AgentForm() {
                     ['1', 'ti-building', 'Select your company'],
                     ['2', 'ti-user', 'Enter your name'],
                     ['3', 'ti-phone', 'Fill call data'],
-                    ['4', 'ti-notes', 'Add review if any'],
+                    ['4', 'ti-notes', 'Add note in Other if any'],
                     ['5', 'ti-send', 'Submit the report'],
                   ].map(([n, icon, text]) => (
                     <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', background: '#1a2235', borderRadius: 10 }}>

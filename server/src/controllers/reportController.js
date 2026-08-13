@@ -35,7 +35,7 @@ const submitReport = async (req, res) => {
   }
 };
 
-// GET /api/reports — Admin fetches with filters
+
 const getReports = async (req, res) => {
   try {
     const { company, agentName, date, startDate, endDate } = req.query;
@@ -68,7 +68,7 @@ const getReports = async (req, res) => {
   }
 };
 
-// DELETE /api/reports/:id
+
 const deleteReport = async (req, res) => {
   try {
     await Report.findByIdAndDelete(req.params.id);

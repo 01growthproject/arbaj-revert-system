@@ -35,7 +35,7 @@ const assignedLeadSchema = new mongoose.Schema({
   }
 }, { timestamps: true })
 
-// ✅ Ek agent ko ek din mein ek company ke liye sirf ek baar leads assign ho
+
 assignedLeadSchema.index({ agentName: 1, company: 1, assignedDate: 1 }, { unique: true })
 
 module.exports = mongoose.model('AssignedLead', assignedLeadSchema)
