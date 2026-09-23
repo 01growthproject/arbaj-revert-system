@@ -115,6 +115,7 @@ const styles = `
 `
 
 export default function AdminLogin() {
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -122,25 +123,67 @@ export default function AdminLogin() {
 
   // ✅ Pehle se token hai toh seedha dashboard pe bhejo
   useEffect(() => {
-    const token = localStorage.getItem('adminToken')
-    if (token) navigate('/admin/dashboard', { replace: true })
-  }, [navigate])
+    const token = localStorage.getItem('authToken');
+    const savedUser = localStorage.getItem('authUser');
+
+    if (!token || !savedUser) return;
+
+    const user = JSON.parse(savedUser);
+
+    if (user.role === 'super_admin') {
+      navigate('/admin/dashboard', {
+        replace: true,
+      });
+    } else {
+      navigate('/company/form', {
+        replace: true,
+      });
+    }
+  }, [navigate]);
 
   const handleLogin = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
-    try {
-      const res = await API.post('/api/admin/login', { password })
-      localStorage.setItem('adminToken', res.data.token)
-      navigate('/admin/dashboard')
-    } catch {
-      setError('Invalid password. Please try again.')
-    } finally {
-      setLoading(false)
-    }
-  }
+    e.preventDefault();
 
+    if (!username.trim() || !password) {
+      setError('Username and password are required');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await API.post('/api/auth/login', {
+        username: username.trim(),
+        password,
+      });
+
+      const { token, user } = response.data;
+
+      localStorage.setItem('authToken', token);
+      localStorage.setItem(
+        'authUser',
+        JSON.stringify(user)
+      );
+
+      if (user.role === 'super_admin') {
+        navigate('/admin/dashboard', {
+          replace: true,
+        });
+      } else {
+        navigate('/company/form', {
+          replace: true,
+        });
+      }
+    } catch (error) {
+      setError(
+        error.response?.data?.message ||
+        'Login failed. Please try again.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <>
       <style>{styles}</style>
@@ -159,10 +202,9 @@ export default function AdminLogin() {
               <div className="al-nav-sub">Revert System</div>
             </div>
           </div>
-          <a href="/" className="al-nav-back">
-            <i className="ti ti-arrow-left" style={{ fontSize: 13, marginRight: 5 }} aria-hidden="true"></i>
-            Agent Form
-          </a>
+        <div className="al-nav-back">
+  Secure Portal
+</div>
         </nav>
 
         {/* LOGIN CARD */}
@@ -171,24 +213,49 @@ export default function AdminLogin() {
             <div className="al-icon-wrap">
               <i className="ti ti-lock" aria-hidden="true"></i>
             </div>
-            <h1 className="al-title">Admin Panel</h1>
-            <p className="al-sub">Arbaj Technology — Revert System</p>
+           <h1 className="al-title">Secure Login</h1>
+
+<p className="al-sub">
+  Sign in to access the Revert System
+</p>
 
             {error && <div className="al-error">⚠️ {error}</div>}
 
             <form onSubmit={handleLogin}>
-              <label className="al-label">Password</label>
+              <label className="al-label">
+                Username
+              </label>
+
+              <input
+                className="al-input"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Enter username"
+                autoComplete="username"
+                disabled={loading}
+                required
+                autoFocus
+              />
+
+              <label className="al-label">
+                Password
+              </label>
+
               <input
                 className="al-input"
                 type="password"
                 value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="Enter admin password"
-                required autoFocus
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter password"
+                autoComplete="current-password"
+                disabled={loading}
+                required
               />
+
               <button type="submit" className="al-btn" disabled={loading}>
                 <i className="ti ti-login" aria-hidden="true"></i>
-                {loading ? 'Logging in...' : 'Login to Dashboard'}
+               {loading ? 'Signing in...' : 'Sign In'}
               </button>
             </form>
           </div>

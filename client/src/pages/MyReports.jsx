@@ -1,8 +1,10 @@
 import { useState, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import API from '../utils/api'
 
 const today = new Date().toISOString().split('T')[0]
 const todayDisplay = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'short', year: 'numeric' })
+const REPORTS_PER_PAGE = 10
 
 const styles = `
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -51,7 +53,7 @@ const styles = `
   .mr-hamburger { display: none; background: none; border: none; color: #f1f5f9; font-size: 22px; cursor: pointer; padding: 6px 8px; line-height: 1; align-items: center; justify-content: center; min-width: 36px; min-height: 36px; }
   .mr-mob-menu { display: none; flex-direction: column; background: #111827; border-bottom: 1px solid #1e2d45; padding: 8px 16px 12px; gap: 4px; }
   .mr-mob-menu.open { display: flex; }
-  .mr-mob-link { font-size: 13px; color: #64748b; padding: 8px 12px; border-radius: 8px; text-decoration: none; font-weight: 500; }
+  .mr-mob-link { font-size: 13px; color: #64748b; padding: 8px 12px; border-radius: 8px; text-decoration: none; font-weight: 500; border: none; background: none; text-align: left; cursor: pointer; font-family: 'DM Sans', sans-serif; }
   .mr-mob-link.active { background: rgba(59,130,246,0.15); color: #3b82f6; }
 
   .mr-page-header {
@@ -109,9 +111,10 @@ const styles = `
 
   .mr-table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
   .mr-count { background: rgba(59,130,246,0.12); color: #3b82f6; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 100px; margin-left: 8px; }
-  .mr-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .mr-scroll { position: relative; height: 470px; overflow: auto; scrollbar-gutter: stable; border: 1px solid #1e2d45; border-radius: 10px; -webkit-overflow-scrolling: touch; }
   .mr-table { width: 100%; border-collapse: collapse; min-width: 800px; }
   .mr-table th {
+    position: sticky; top: 0; z-index: 2;
     padding: 10px 12px; text-align: left; font-size: 10px; font-weight: 700;
     text-transform: uppercase; letter-spacing: 0.8px; color: #64748b;
     border-bottom: 1px solid #1e2d45; background: #1a2235; white-space: nowrap;
@@ -125,6 +128,11 @@ const styles = `
   .mr-initial { text-align: center; padding: 50px 20px; color: #64748b; }
   .mr-loading { text-align: center; padding: 40px; color: #64748b; }
   .mr-error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #ef4444; padding: 11px 15px; border-radius: 10px; font-size: 14px; font-weight: 600; }
+  .mr-table-loader { position: absolute; inset: 0; z-index: 4; display: grid; place-items: center; background: rgba(11,17,32,.72); backdrop-filter: blur(2px); color: #64748b; font-size: 12px; }
+  .mr-spinner { width: 24px; height: 24px; margin: 0 auto 9px; border: 2px solid #1e2d45; border-top-color: #3b82f6; border-radius: 50%; animation: mr-spin .7s linear infinite; }
+  @keyframes mr-spin { to { transform: rotate(360deg); } }
+  .mr-pagination { min-height: 50px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #1e2d45; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .mr-page-info, .mr-page-current { color: #64748b; font-size: 12px; }.mr-page-actions { display: flex; align-items: center; gap: 8px; }.mr-page-current { min-width: 100px; text-align: center; }.mr-page-btn { min-width: 82px; height: 34px; padding: 0 12px; background: #1a2235; color: #f1f5f9; border: 1px solid #1e2d45; border-radius: 8px; font: 600 12px 'DM Sans',sans-serif; cursor: pointer; }.mr-page-btn:hover:not(:disabled) { border-color: #3b82f6; color: #3b82f6; }.mr-page-btn:disabled { opacity: .45; cursor: not-allowed; }
 
   .mr-readonly-badge {
     background: rgba(245,158,11,0.12); color: #f59e0b;
@@ -145,10 +153,12 @@ const styles = `
   }
   @media (max-width: 480px) {
     .mr-stats { grid-template-columns: 1fr 1fr; }
+    .mr-pagination { align-items: flex-start; flex-direction: column; }.mr-page-actions { width: 100%; }.mr-page-btn { flex: 1; }.mr-page-current { min-width: 82px; }
   }
 `
 
 export default function MyReports() {
+  const navigate = useNavigate()
   const [agentName, setAgentName] = useState('')
   const [date, setDate] = useState('')
   const [reports, setReports] = useState([])
@@ -157,19 +167,30 @@ export default function MyReports() {
   const [searched, setSearched] = useState(false)
   const [error, setError] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
+  const [page, setPage] = useState(1)
+  const [pagination, setPagination] = useState({ currentPage: 1, totalPages: 1, totalRecords: 0, hasPreviousPage: false, hasNextPage: false })
 
-  const handleSearch = useCallback(async (e) => {
-    e?.preventDefault()
+  const handleLogout = () => {
+    localStorage.removeItem('authToken')
+    localStorage.removeItem('authUser')
+    localStorage.removeItem('adminToken')
+    sessionStorage.removeItem('lockedCompanyParam')
+    navigate('/', { replace: true })
+  }
+
+  const fetchReports = useCallback(async (requestedPage = 1) => {
     if (!agentName.trim()) return setError('Please enter your name')
     setError('')
     setLoading(true)
     try {
       // ✅ Sirf naam aur date — company ka koi role nahi
-      const params = { agentName: agentName.trim() }
+      const params = { agentName: agentName.trim(), page: requestedPage, limit: REPORTS_PER_PAGE }
       if (date) params.date = date
       const res = await API.get('/api/reports', { params })
       setReports(res.data.reports)
       setSummary(res.data.summary)
+      setPagination(res.data.pagination || { currentPage: requestedPage, totalPages: 1, totalRecords: res.data.reports?.length || 0, hasPreviousPage: false, hasNextPage: false })
+      setPage(requestedPage)
       setSearched(true)
     } catch {
       setError('Something went wrong. Please try again.')
@@ -177,6 +198,11 @@ export default function MyReports() {
       setLoading(false)
     }
   }, [agentName, date])
+
+  const handleSearch = event => {
+    event.preventDefault()
+    fetchReports(1)
+  }
 
   const pill = (val, color, bg) => (
     <span className="mr-pill" style={{ color, background: bg }}>{val ?? 0}</span>
@@ -201,12 +227,12 @@ export default function MyReports() {
             </div>
           </div>
           <div className="mr-nav-links">
-            <a href="/" className="mr-nav-btn">Daily Form</a>
+            <a href="/company/form" className="mr-nav-btn">Daily Form</a>
             <span className="mr-nav-btn active">My Reports</span>
-            <a href="/admin" className="mr-nav-admin">
-              <i className="ti ti-lock" style={{ fontSize: 12, marginRight: 5 }} aria-hidden="true"></i>
-              Admin
-            </a>
+            <button type="button" onClick={handleLogout} className="mr-nav-admin">
+              <i className="ti ti-logout" style={{ fontSize: 12, marginRight: 5 }} aria-hidden="true"></i>
+              Logout
+            </button>
           </div>
           <button className="mr-hamburger" onClick={() => setMenuOpen(o => !o)} aria-label="Toggle menu">
             {menuOpen ? '✕' : '☰'}
@@ -215,9 +241,9 @@ export default function MyReports() {
 
         {/* Mobile menu */}
         <div className={`mr-mob-menu ${menuOpen ? 'open' : ''}`}>
-          <a href="/" className="mr-mob-link">Daily Form</a>
+          <a href="/company/form" className="mr-mob-link">Daily Form</a>
           <span className="mr-mob-link active">My Reports</span>
-          <a href="/admin" className="mr-mob-link">Admin Panel</a>
+          <button type="button" onClick={handleLogout} className="mr-mob-link">Logout</button>
         </div>
 
         {/* PAGE HEADER */}
@@ -285,6 +311,10 @@ export default function MyReports() {
             </div>
           )}
 
+          {loading && !searched && (
+            <div className="mr-card"><div className="mr-loading"><div className="mr-spinner" />Loading reports…</div></div>
+          )}
+
           {/* RESULTS */}
           {searched && summary && (
             <>
@@ -312,7 +342,7 @@ export default function MyReports() {
                 <div className="mr-table-header">
                   <div style={{ fontFamily: 'DM Serif Display, serif', fontSize: '1.1rem', fontWeight: 400, display: 'flex', alignItems: 'center' }}>
                     Reports for "{agentName}"
-                    <span className="mr-count">{reports.length} entries</span>
+                    <span className="mr-count">{pagination.totalRecords} entries</span>
                   </div>
                 </div>
 
@@ -323,7 +353,8 @@ export default function MyReports() {
                     <p style={{ fontSize: '0.82rem', marginTop: 6, color: '#475569' }}>Make sure your name matches exactly as submitted</p>
                   </div>
                 ) : (
-                  <div className="mr-scroll">
+                  <div className="mr-scroll" aria-busy={loading}>
+                    {loading && <div className="mr-table-loader"><div><div className="mr-spinner" />Loading reports…</div></div>}
                     <table className="mr-table">
                       <thead>
                         <tr>
@@ -349,6 +380,16 @@ export default function MyReports() {
                         ))}
                       </tbody>
                     </table>
+                  </div>
+                )}
+                {reports.length > 0 && (
+                  <div className="mr-pagination">
+                    <span className="mr-page-info">Showing {(pagination.currentPage - 1) * REPORTS_PER_PAGE + 1}–{Math.min(pagination.currentPage * REPORTS_PER_PAGE, pagination.totalRecords)} of {pagination.totalRecords}</span>
+                    <div className="mr-page-actions">
+                      <button className="mr-page-btn" disabled={!pagination.hasPreviousPage || loading} onClick={() => fetchReports(Math.max(page - 1, 1))}>Previous</button>
+                      <span className="mr-page-current">{loading ? 'Loading…' : `Page ${pagination.currentPage} of ${Math.max(pagination.totalPages, 1)}`}</span>
+                      <button className="mr-page-btn" disabled={!pagination.hasNextPage || loading} onClick={() => fetchReports(Math.min(page + 1, pagination.totalPages))}>Next</button>
+                    </div>
                   </div>
                 )}
               </div>

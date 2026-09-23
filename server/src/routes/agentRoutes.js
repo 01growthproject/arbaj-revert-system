@@ -1,12 +1,12 @@
 const express = require('express');
 
 const {
-  bulkImportAssignedLeads,
-  assignLeads,
-  getAgentLeads,
-  getAllAssignedLeads,
-  deleteAssignedLead,
-} = require('../controllers/assignedLeadController');
+  bulkImportAgents,
+  createAgent,
+  getAgents,
+  updateAgent,
+  deleteAgent,
+} = require('../controllers/agentController');
 const auth = require('../middleware/auth');
 const authorize = require('../middleware/authorize');
 
@@ -16,35 +16,35 @@ router.post(
   '/bulk-import',
   auth,
   authorize('super_admin'),
-  bulkImportAssignedLeads
+  bulkImportAgents
 );
 
 router.get(
   '/',
   auth,
-  authorize('company_user'),
-  getAgentLeads
-);
-
-router.get(
-  '/all',
-  auth,
-  authorize('super_admin'),
-  getAllAssignedLeads
+  authorize('super_admin', 'company_user'),
+  getAgents
 );
 
 router.post(
   '/',
   auth,
   authorize('super_admin'),
-  assignLeads
+  createAgent
+);
+
+router.patch(
+  '/:id',
+  auth,
+  authorize('super_admin'),
+  updateAgent
 );
 
 router.delete(
   '/:id',
   auth,
   authorize('super_admin'),
-  deleteAssignedLead
+  deleteAgent
 );
 
 module.exports = router;
